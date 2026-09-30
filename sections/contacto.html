@@ -1,0 +1,30 @@
+<!--
+  SECCIÓN: Datos de contacto
+  ---------------------------
+  DATOS DINÁMICOS (preparado para BD/API):
+  - data-contact-email → Correo electrónico
+  - data-contact-phone → Teléfono
+  Se pueden añadir más items desde un array de contactos en el futuro.
+-->
+<section class="seccion-contacto" data-section="contacto">
+  <div class="contacto-grid">
+    <div class="contacto-item" data-contact-type="email">
+      <div class="contacto-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      </div>
+      <div class="contacto-texto">
+        <div class="contacto-label">Correo electrónico</div>
+        <div class="contacto-valor" data-field="contact-email">ana.garcia@colegio.edu.mx</div>
+      </div>
+    </div>
+    <div class="contacto-item" data-contact-type="phone">
+      <div class="contacto-icono" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+      </div>
+      <div class="contacto-texto">
+        <div class="contacto-label">Teléfono</div>
+        <div class="contacto-valor" data-field="contact-phone">+52 55 9876 5432</div>
+      </div>
+    </div>
+  </div>
+</section>

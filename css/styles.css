@@ -1,0 +1,375 @@
+/*
+ * ============================================================
+ * ESTILOS GLOBALES - Presentación Institucional
+ * ============================================================
+ * PALETA DE COLORES
+ * Principal (Azul institucional): #023285  → Encabezados, logo, textos clave
+ * Secundario (Azul brillante):    #01409C  → Gradientes, acentos secundarios
+ * Acento (Rojo institucional):    #C60925  → Detalles de énfasis, CTA
+ * Fondo:                          #FFFFFF  → Áreas de contenido
+ * Fondo suave:                    #F5F7FC  → Secciones alternas
+ * Texto principal:                #1A1A2E
+ * Texto secundario:               #5A5A6E
+ *
+ * Proporción: ~60% blanco/suave + 25% azul principal + 10% azul brillante + 5% rojo
+ * ============================================================
+ */
+
+:root {
+  --azul-principal: #023285;
+  --azul-brillante: #01409C;
+  --rojo-acento: #C60925;
+  --blanco: #FFFFFF;
+  --fondo-suave: #F5F7FC;
+  --texto: #1A1A2E;
+  --texto-secundario: #5A5A6E;
+  --sombra: 0 8px 32px rgba(2, 50, 133, 0.10);
+  --sombra-suave: 0 4px 16px rgba(2, 50, 133, 0.06);
+  --radio: 12px;
+  --transicion: 0.3s ease;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--blanco);
+  color: var(--texto);
+  line-height: 1.6;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ========== HEADER INSTITUCIONAL ========== */
+.header {
+  border-bottom: 1px solid rgba(2, 50, 133, 0.08);
+  padding: clamp(16px, 3vw, 22px) clamp(20px, 5vw, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.logo-grupo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-svg {
+  width: clamp(42px, 8vw, 52px);
+  height: clamp(42px, 8vw, 52px);
+  flex-shrink: 0;
+}
+
+.logo-texto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.logo-nombre {
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+  font-weight: 700;
+  color: var(--azul-principal);
+  letter-spacing: -0.2px;
+}
+
+.logo-lema {
+  font-size: clamp(0.7rem, 1.8vw, 0.78rem);
+  color: var(--texto-secundario);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ========== SECCIÓN PERSONA ========== */
+.seccion-persona {
+  padding: clamp(40px, 8vw, 72px) clamp(20px, 5vw, 48px);
+  background: var(--blanco);
+}
+
+.contenedor {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.persona-card {
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 5vw, 40px);
+  background: var(--fondo-suave);
+  border-radius: calc(var(--radio) + 4px);
+  padding: clamp(28px, 5vw, 40px);
+  box-shadow: var(--sombra-suave);
+  border: 1px solid rgba(2, 50, 133, 0.06);
+}
+
+.persona-avatar {
+  width: clamp(88px, 18vw, 110px);
+  height: clamp(88px, 18vw, 110px);
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--azul-principal), var(--azul-brillante));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blanco);
+  font-size: clamp(1.8rem, 4.5vw, 2.3rem);
+  font-weight: 700;
+  letter-spacing: -1px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 20px rgba(2, 50, 133, 0.25);
+  border: 4px solid var(--blanco);
+  outline: 3px solid var(--azul-principal);
+  position: relative;
+}
+
+.persona-avatar::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: clamp(14px, 3.5vw, 18px);
+  height: clamp(14px, 3.5vw, 18px);
+  background: var(--rojo-acento);
+  border-radius: 50%;
+  border: 3px solid var(--blanco);
+}
+
+.persona-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.persona-etiqueta {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--rojo-acento);
+  margin-bottom: 6px;
+}
+
+.persona-nombre {
+  font-size: clamp(1.35rem, 4vw, 1.7rem);
+  font-weight: 700;
+  color: var(--azul-principal);
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.persona-rol {
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  color: var(--texto-secundario);
+  font-weight: 500;
+}
+
+/* ========== SECCIÓN DATOS / CONTACTO ========== */
+.seccion-contacto {
+  padding: 0 clamp(20px, 5vw, 48px) clamp(48px, 8vw, 80px);
+  background: var(--blanco);
+}
+
+.contacto-grid {
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--fondo-suave);
+  border-radius: var(--radio);
+  padding: 18px 20px;
+  border: 1px solid rgba(2, 50, 133, 0.06);
+  transition: box-shadow var(--transicion);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contacto-item:hover {
+    box-shadow: var(--sombra-suave);
+  }
+}
+
+.contacto-icono {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, var(--azul-principal), var(--azul-brillante));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contacto-icono svg {
+  width: 20px;
+  height: 20px;
+  fill: var(--blanco);
+}
+
+.contacto-texto {
+  min-width: 0;
+}
+
+.contacto-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--texto-secundario);
+  margin-bottom: 2px;
+}
+
+.contacto-valor {
+  font-size: clamp(0.85rem, 2.3vw, 0.95rem);
+  font-weight: 500;
+  color: var(--texto);
+  word-break: break-word;
+}
+
+/* ========== CTA ========== */
+.seccion-cta {
+  background: var(--fondo-suave);
+  padding: clamp(40px, 7vw, 64px) clamp(20px, 5vw, 48px);
+  text-align: center;
+  border-top: 1px solid rgba(2, 50, 133, 0.06);
+}
+
+.cta-titulo {
+  font-size: clamp(1.2rem, 3.5vw, 1.45rem);
+  font-weight: 700;
+  color: var(--azul-principal);
+  margin-bottom: 8px;
+}
+
+.cta-texto {
+  font-size: clamp(0.9rem, 2.3vw, 1rem);
+  color: var(--texto-secundario);
+  margin-bottom: 28px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-contactar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--azul-principal), var(--azul-brillante));
+  color: var(--blanco);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  padding: 14px 36px;
+  min-height: 52px;
+  border-radius: 50px;
+  box-shadow: 0 6px 20px rgba(2, 50, 133, 0.25);
+  transition: all var(--transicion);
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-contactar:hover {
+    background: linear-gradient(135deg, var(--rojo-acento), #a00820);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(198, 9, 37, 0.35);
+  }
+}
+
+.btn-contactar:active {
+  transform: scale(0.98);
+}
+
+.btn-contactar svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.btn-contactar:focus-visible {
+  outline: 3px solid var(--rojo-acento);
+  outline-offset: 3px;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+  background: var(--azul-principal);
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  padding: clamp(20px, 4vw, 28px) clamp(20px, 5vw, 48px);
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
+}
+
+.footer strong {
+  color: var(--blanco);
+  font-weight: 600;
+}
+
+/* ========== ESTADOS DE CARGA (para módulos) ========== */
+.seccion-cargando {
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--texto-secundario);
+  font-size: 0.9rem;
+}
+
+.seccion-error {
+  padding: 24px;
+  text-align: center;
+  color: var(--rojo-acento);
+  font-size: 0.9rem;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 600px) {
+  .persona-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .contacto-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .persona-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 1.6rem;
+  }
+
+  .contacto-item {
+    padding: 14px 16px;
+  }
+}
