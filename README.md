@@ -1,91 +1,61 @@
-# Presentación Institucional – Estructura Multiarchivo
+# Presentación institucional – Supabase + GitHub Pages
 
-Proyecto modular en HTML/CSS/JavaScript vanilla. Sin dependencias externas.
-
-## Estructura de carpetas
+## URL de consulta
 
 ```
-presentacion/
-├── index.html              ← Página principal (punto de entrada)
-├── css/
-│   └── styles.css          ← Estilos globales + variables CSS + media queries
-├── js/
-│   └── main.js             ← Cargador de secciones + applyData() para BD/API
-├── sections/
-│   ├── header.html         ← Logo + nombre de la institución
-│   ├── persona.html        ← Avatar + nombre + grado del estudiante
-│   ├── contacto.html       ← Email y teléfono
-│   ├── cta.html            ← Llamado a la acción (botón Contactar)
-│   └── footer.html         ← Pie de página institucional
-├── components/             ← Reservado para componentes reutilizables futuros
-├── assets/                 ← Imágenes, iconos, etc.
-└── README.md
+https://netioscr-arch.github.io/sch00l_modinfo/?cct=TU_CCT&a=NUMERO_ALUMNO
+```
+
+Ejemplo:
+```
+https://netioscr-arch.github.io/sch00l_modinfo/?cct=28PJN9999X&a=12345
 ```
 
 ## Cómo funciona
 
-1. `index.html` define el contenedor `#app`.
-2. `js/main.js` carga en paralelo cada archivo de `/sections/` mediante `fetch`.
-3. Los fragmentos HTML se insertan en el orden definido.
-4. Los estilos de `css/styles.css` se aplican globalmente.
+1. La página lee `cct` y `a` de la URL.
+2. Llama a la función RPC de Supabase: `buscar_alumno(p_cct, p_numero_alumno)`.
+3. Rellena nombre, escuela, grado, grupo, turno, teléfono y correo del tutor.
 
-> **Importante:** Debe servirse desde un servidor web (local o remoto).  
-> Abrir el archivo con `file://` no permite `fetch` por políticas de seguridad del navegador.
+## Configuración en Supabase (importante)
 
-### Servidor local rápido
+Para que funcione desde el navegador (rol `anon` / publishable):
 
-```bash
-# Python
-python -m http.server 8080
+1. En **SQL Editor** ejecuta (ajusta el nombre si tu función se llama distinto):
 
-# Node (si tienes npx)
-npx serve .
+```sql
+GRANT EXECUTE ON FUNCTION public.buscar_alumno(text, text) TO anon;
+GRANT EXECUTE ON FUNCTION public.buscar_alumno(text, text) TO authenticated;
 ```
 
-Luego abre `http://localhost:8080`.
+2. Si usas RLS en las tablas subyacentes, la función debe estar definida con
+   `SECURITY DEFINER` y un `search_path` seguro, o las políticas deben permitir
+   la lectura necesaria.
 
-## Preparado para base de datos / API
+3. Prueba la función en el SQL Editor:
 
-Cada sección usa atributos `data-field` y `data-section` para identificar los puntos de datos.
-
-### Ejemplo de inyección de datos
-
-```js
-// Después de que las secciones carguen (evento sections:loaded)
-document.addEventListener('sections:loaded', () => {
-  // Simulación de respuesta de API
-  const datos = {
-    'person-name': 'Ana García López',
-    'person-role': 'Estudiante',
-    'person-detail': '5°B · Bachillerato General · Turno Matutino',
-    'person-initials': 'AG',
-    'contact-email': 'ana.garcia@colegio.edu.mx',
-    'contact-phone': '+52 55 9876 5432',
-    'cta-title': '¿Deseas ponerte en contacto?',
-    'cta-text': 'Estoy disponible para resolver dudas...',
-    'cta-link': 'mailto:ana.garcia@colegio.edu.mx?subject=Contacto',
-    'school-name': 'Colegio Excelencia',
-    'school-tagline': 'Formando el futuro',
-    'footer-school': 'Colegio Excelencia',
-    'footer-text': ' · Formando el futuro con excelencia académica y valores'
-  };
-
-  window.PresentacionApp.applyData(datos);
-});
+```sql
+SELECT * FROM buscar_alumno('28PJN9999X', '12345');
 ```
 
-En producción solo cambia la fuente de `datos` por un `fetch('/api/persona/ID')`.
+## Estructura
 
-## Personalización
+```
+presentacion/
+├── index.html
+├── css/styles.css
+├── js/main.js          ← URL, key y lógica Supabase
+├── sections/           ← Fragmentos HTML
+└── README.md
+```
 
-| Qué cambiar              | Dónde                                      |
-|--------------------------|--------------------------------------------|
-| Colores                  | `css/styles.css` → bloque `:root`          |
-| Textos de una sección    | Archivo correspondiente en `sections/`     |
-| Orden de secciones       | Array `SECTIONS` en `js/main.js`           |
-| Añadir nueva sección     | Crear HTML en `sections/` + registrar en `SECTIONS` |
+## Subir a GitHub
 
-## Requisitos
+Copia el contenido de esta carpeta a la raíz (o a la carpeta que use GitHub Pages)
+del repositorio `sch00l_modinfo` y haz push.
 
-- Navegador moderno con soporte de `fetch` y CSS custom properties
-- Servidor HTTP (cualquier hosting estático funciona: Netlify, GitHub Pages, Vercel, Apache, Nginx, etc.)
+## Seguridad
+
+- Solo se usa la **publishable / anon key** (correcto en frontend).
+- Nunca subas la `service_role` key.
+- Recomendado: que `buscar_alumno` sea la única vía de lectura pública.
