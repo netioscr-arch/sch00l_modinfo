@@ -201,8 +201,11 @@
       ? 'mailto:' + email + '?subject=' + encodeURIComponent('Contacto institucional - ' + nombre)
       : '#';
 
+    var slogan = row.eslogan || row.slogan || row.lema || '';
+
     return {
       'school-name': row.escuela || '',
+      'school-tagline': slogan || 'Formando el futuro',
       'footer-school': row.escuela || '',
       'person-name': nombre,
       'person-detail': detalle,
