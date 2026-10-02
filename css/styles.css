@@ -373,3 +373,49 @@ body {
     padding: 14px 16px;
   }
 }
+
+/* ========== ESTADOS (carga / vacío / no encontrado) ========== */
+.estado-pantalla {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.estado-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(2, 50, 133, 0.15);
+  border-top-color: var(--azul-principal);
+  border-radius: 50%;
+  animation: estado-girar 0.7s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes estado-girar {
+  to { transform: rotate(360deg); }
+}
+
+.estado-icono {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.estado-titulo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--azul-principal);
+  margin-bottom: 8px;
+}
+
+.estado-texto {
+  font-size: 0.95rem;
+  color: var(--texto-secundario);
+  line-height: 1.5;
+}
