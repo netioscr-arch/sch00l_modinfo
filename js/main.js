@@ -36,12 +36,14 @@
     header:
       '<header class="header" data-section="header">' +
       '<a href="#" class="logo-grupo" aria-label="Escuela" data-field="school-link">' +
-      '<svg class="logo-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+      '<div class="logo-mark">' +
+      '<img class="logo-img" data-field="school-logo" alt="Logo de la escuela" width="52" height="52" hidden>' +
+      '<svg class="logo-svg logo-svg-fallback" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
       '<path d="M32 4L8 14V30C8 44 18 54.5 32 60C46 54.5 56 44 56 30V14L32 4Z" fill="#023285"/>' +
       '<path d="M32 10L14 18V30C14 41 22 49.5 32 54C42 49.5 50 41 50 30V18L32 10Z" fill="#01409C"/>' +
       '<path d="M24 28H40V30H24V28ZM22 34H42V36H22V34ZM26 40H38V42H26V40Z" fill="white" opacity="0.9"/>' +
       '<path d="M32 18L33.5 22.5H38L34.5 25.5L36 30L32 27L28 30L29.5 25.5L26 22.5H30.5L32 18Z" fill="#C60925"/>' +
-      '</svg>' +
+      '</svg></div>' +
       '<div class="logo-texto">' +
       '<span class="logo-nombre" data-field="school-name">&nbsp;</span>' +
       '<span class="logo-lema" data-field="school-tagline">Formando el futuro</span>' +
@@ -202,10 +204,12 @@
       : '#';
 
     var slogan = row.eslogan || row.slogan || row.lema || '';
+    var logoUrl = (row.logo || '').trim();
 
     return {
       'school-name': row.escuela || '',
       'school-tagline': slogan || 'Formando el futuro',
+      'school-logo': logoUrl,
       'footer-school': row.escuela || '',
       'person-name': nombre,
       'person-detail': detalle,
@@ -221,6 +225,19 @@
     };
   }
 
+  function updateLogoMarks() {
+    document.querySelectorAll('.logo-mark').forEach(function (mark) {
+      var img = mark.querySelector('.logo-img');
+      if (img && img.getAttribute('src')) {
+        img.hidden = false;
+        mark.classList.add('has-logo');
+      } else {
+        if (img) img.hidden = true;
+        mark.classList.remove('has-logo');
+      }
+    });
+  }
+
   function applyData(data) {
     if (!data || typeof data !== 'object') return;
     Object.keys(data).forEach(function (field) {
@@ -230,12 +247,19 @@
         if (el.tagName === 'A' && field.indexOf('link') !== -1) {
           el.setAttribute('href', value || '#');
         } else if (el.tagName === 'IMG') {
-          if (value) el.setAttribute('src', value);
+          if (value) {
+            el.setAttribute('src', value);
+            el.removeAttribute('hidden');
+          } else {
+            el.removeAttribute('src');
+            el.setAttribute('hidden', '');
+          }
         } else {
           el.textContent = value;
         }
       });
     });
+    updateLogoMarks();
   }
 
   async function start() {
