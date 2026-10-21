@@ -1,8 +1,8 @@
 /**
  * main.js – Cargador modular + conexión Supabase
  * ------------------------------------------------
- * URL: ?cct=28PJN9999X&a=CE-0015
- * RPC: buscar_alumno(p_cct, p_numero_alumno)
+ * URL: ?t=TOKEN_PUBLICO
+ * RPC: buscar_alumno(p_token)
  */
 
 (function () {
@@ -84,8 +84,7 @@
   function getQueryParams() {
     var params = new URLSearchParams(window.location.search);
     return {
-      cct: (params.get('cct') || '').trim(),
-      a: (params.get('a') || '').trim()
+      t: (params.get('t') || '').trim()
     };
   }
 
@@ -162,7 +161,7 @@
     app.style.visibility = 'hidden';
   }
 
-  async function fetchAlumno(cct, numeroAlumno) {
+  async function fetchAlumno(token) {
     var url = SUPABASE_URL + '/rest/v1/rpc/' + RPC_NAME;
     var response = await fetch(url, {
       method: 'POST',
@@ -172,8 +171,7 @@
         'Authorization': 'Bearer ' + SUPABASE_KEY
       },
       body: JSON.stringify({
-        p_cct: cct,
-        p_numero_alumno: numeroAlumno
+        p_token: token
       })
     });
 
@@ -270,8 +268,8 @@
 
     var params = getQueryParams();
 
-    /* Sin parámetros: mensaje amable, sin instrucciones técnicas */
-    if (!params.cct || !params.a) {
+    /* Sin token: mensaje amable, sin instrucciones técnicas */
+    if (!params.t) {
       mostrarEstado('vacio', {
         titulo: 'Enlace incompleto',
         texto: 'Esta página necesita un enlace válido para mostrar la información. Solicita el enlace correcto a la institución.'
@@ -281,12 +279,12 @@
 
     try {
       await initSections();
-      var alumno = await fetchAlumno(params.cct, params.a);
+      var alumno = await fetchAlumno(params.t);
 
       if (!alumno) {
         mostrarEstado('noencontrado', {
           titulo: 'No se encontró la información',
-          texto: 'No hay registros que coincidan con los datos del enlace. Verifica el enlace o contacta a la institución.'
+          texto: 'No hay registros que coincidan con este enlace. Verifica el enlace o contacta a la institución.'
         });
         return;
       }
