@@ -96,7 +96,7 @@
         <div class="campo">
           <label for="grado">Grado <span class="req">*</span></label>
           <select id="grado" name="grado" required>
-            <option value="">Cargando grados…</option>
+            <option value="">Elige primero una escuela…</option>
           </select>
         </div>
         <div class="campo">
@@ -180,21 +180,35 @@
       });
     }
 
-    /* Cargar grados y turnos en los desplegables */
-    rpc('listar_grados').then(function (grados) {
-      selectGrado.innerHTML = '<option value="">Elige un grado…</option>';
-      if (!grados || grados.length === 0) {
-        selectGrado.innerHTML = '<option value="">No hay grados</option>';
-        return;
-      }
-      grados.forEach(function (g) {
-        var opt = document.createElement('option');
-        opt.value = g.id;
-        opt.textContent = g.nombre;
-        selectGrado.appendChild(opt);
+    /* Cargar grados según el nivel de la escuela elegida.
+       cat_grado tiene nivel_id: Preescolar (2) = 1°-3°, Primaria (3) =
+       1°-6°, Secundaria (4) = 1°-3°. Sin escuela no hay grados. */
+    var escuelasPorId = {};
+    function cargarGrados(nivelId) {
+      selectGrado.innerHTML = '<option value="">Cargando grados…</option>';
+      rpc('listar_grados', { p_nivel_id: nivelId }).then(function (grados) {
+        selectGrado.innerHTML = '<option value="">Elige un grado…</option>';
+        if (!grados || grados.length === 0) {
+          selectGrado.innerHTML = '<option value="">No hay grados para este nivel</option>';
+          return;
+        }
+        grados.forEach(function (g) {
+          var opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = g.nombre;
+          selectGrado.appendChild(opt);
+        });
+      }).catch(function () {
+        selectGrado.innerHTML = '<option value="">No se pudieron cargar los grados</option>';
       });
-    }).catch(function () {
-      selectGrado.innerHTML = '<option value="">No se pudieron cargar los grados</option>';
+    }
+    selectEscuela.addEventListener('change', function () {
+      var esc = escuelasPorId[selectEscuela.value];
+      if (esc && esc.nivel_id) {
+        cargarGrados(esc.nivel_id);
+      } else {
+        selectGrado.innerHTML = '<option value="">Elige primero una escuela…</option>';
+      }
     });
 
     rpc('listar_turnos').then(function (turnos) {
@@ -246,6 +260,7 @@
         opt.value = e.id;
         opt.textContent = e.nombre + (e.cct ? ' (' + e.cct + ')' : '');
         selectEscuela.appendChild(opt);
+        escuelasPorId[e.id] = e;
       });
     }).catch(function () {
       selectEscuela.innerHTML = '<option value="">No se pudieron cargar las escuelas</option>';
