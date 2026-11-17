@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Captura de escuelas">
+  <title>Captura de escuela</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .form-wrap { max-width: 720px; margin: 0 auto; padding: clamp(28px, 6vw, 48px) clamp(20px, 5vw, 48px) clamp(48px, 8vw, 80px); }
+    .form-titulo { font-size: clamp(1.3rem, 4vw, 1.6rem); font-weight: 700; color: var(--azul-principal); margin-bottom: 6px; }
+    .form-sub { color: var(--texto-secundario); margin-bottom: 28px; }
+    .form-sub a { color: var(--azul-brillante); font-weight: 600; }
+    .campo { margin-bottom: 16px; }
+    .campo label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--texto-secundario); margin-bottom: 6px; }
+    .campo label .req { color: var(--rojo-acento); }
+    .campo input, .campo select { width: 100%; padding: 12px 14px; border: 1px solid rgba(2, 50, 133, 0.2); border-radius: 10px; font: inherit; color: var(--texto); background: #fff; }
+    .campo input:focus, .campo select:focus { outline: 3px solid rgba(1, 64, 156, 0.25); border-color: var(--azul-brillante); }
+    .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .fila { grid-template-columns: 1fr; } }
+    .mensaje { display: none; border-radius: 12px; padding: 16px 18px; margin-top: 20px; font-size: 0.95rem; }
+    .mensaje.exito { display: block; background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+    .mensaje.error { display: block; background: #fdecea; color: var(--rojo-acento); border: 1px solid #f5c6cb; }
+    .mensaje a { color: inherit; font-weight: 600; }
+    .btn-contactar:disabled { opacity: 0.6; cursor: wait; transform: none; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="logo-grupo" aria-label="Inicio">
+      <svg class="logo-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M32 4L8 14V30C8 44 18 54.5 32 60C46 54.5 56 44 56 30V14L32 4Z" fill="#023285"/>
+        <path d="M32 10L14 18V30C14 41 22 49.5 32 54C42 49.5 50 41 50 30V18L32 10Z" fill="#01409C"/>
+        <path d="M24 28H40V30H24V28ZM22 34H42V36H22V34ZM26 40H38V42H26V40Z" fill="white" opacity="0.9"/>
+        <path d="M32 18L33.5 22.5H38L34.5 25.5L36 30L32 27L28 30L29.5 25.5L26 22.5H30.5L32 18Z" fill="#C60925"/>
+      </svg>
+      <div class="logo-texto">
+        <span class="logo-nombre">Captura de escuela</span>
+        <span class="logo-lema">Formando el futuro</span>
+      </div>
+    </a>
+  </header>
+
+  <main class="form-wrap">
+    <h1 class="form-titulo">Captura de escuela</h1>
+    <p class="form-sub">Registra una escuela para después capturar a sus alumnos.
+      ¿Ya está la escuela? <a href="captura-alumno.html">Capturar alumno</a></p>
+
+    <form id="form-escuela" novalidate>
+      <div class="campo">
+        <label for="nombre">Nombre de la escuela <span class="req">*</span></label>
+        <input id="nombre" name="nombre" type="text" required autocomplete="off" placeholder="Ej. Escuela Primaria Benito Juárez">
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="cct">CCT <span class="req">*</span></label>
+          <input id="cct" name="cct" type="text" required autocomplete="off" placeholder="Ej. 28PJN9999X">
+        </div>
+        <div class="campo">
+          <label for="sector">Sector</label>
+          <input id="sector" name="sector" type="text" autocomplete="off" placeholder="Ej. 01">
+        </div>
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="zona_escolar">Zona escolar</label>
+          <input id="zona_escolar" name="zona_escolar" type="text" autocomplete="off" placeholder="Ej. 12">
+        </div>
+        <div class="campo">
+          <label for="eslogan">Eslogan</label>
+          <input id="eslogan" name="eslogan" type="text" autocomplete="off" placeholder="Ej. Formando el futuro">
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="correo">Correo electrónico</label>
+        <input id="correo" name="correo" type="email" autocomplete="off" placeholder="Ej. escuela@ejemplo.com">
+      </div>
+
+      <div class="campo">
+        <label for="calle">Calle</label>
+        <input id="calle" name="calle" type="text" autocomplete="off">
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="colonia">Colonia</label>
+          <input id="colonia" name="colonia" type="text" autocomplete="off">
+        </div>
+        <div class="campo">
+          <label for="codigo_postal">Código postal</label>
+          <input id="codigo_postal" name="codigo_postal" type="text" inputmode="numeric" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="municipio">Municipio</label>
+          <input id="municipio" name="municipio" type="text" autocomplete="off">
+        </div>
+        <div class="campo">
+          <label for="estado">Estado</label>
+          <input id="estado" name="estado" type="text" autocomplete="off" placeholder="Ej. Tamaulipas">
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="logo_url">Logo (enlace de la imagen)</label>
+        <input id="logo_url" name="logo_url" type="url" autocomplete="off" placeholder="Ej. https://…/logo.png">
+      </div>
+
+      <button class="btn-contactar" type="submit" id="btn-guardar">Guardar escuela</button>
+    </form>
+
+    <div class="mensaje" id="mensaje" role="status"></div>
+  </main>
+
+  <footer class="footer">
+    <strong>Captura de escuelas</strong><span> · Formando el futuro con excelencia académica y valores</span>
+  </footer>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var SUPABASE_URL = 'https://aghllznrmjmhjxzbzito.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_t59QVHo-9-nECQnUYu0tOg_2z_x108-';
+
+    var form = document.getElementById('form-escuela');
+    var mensaje = document.getElementById('mensaje');
+    var boton = document.getElementById('btn-guardar');
+
+    function mostrar(tipo, html) {
+      mensaje.className = 'mensaje ' + tipo;
+      mensaje.innerHTML = html;
+      mensaje.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function valor(id) {
+      var v = document.getElementById(id).value;
+      return v ? v.trim() : '';
+    }
+
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+
+      var nombre = valor('nombre');
+      var cct = valor('cct');
+      if (!nombre || !cct) {
+        mostrar('error', 'Faltan datos: el nombre de la escuela y la CCT son obligatorios.');
+        return;
+      }
+
+      boton.disabled = true;
+      boton.textContent = 'Guardando…';
+      mensaje.className = 'mensaje';
+      mensaje.innerHTML = '';
+
+      fetch(SUPABASE_URL + '/rest/v1/rpc/registrar_escuela', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY
+        },
+        body: JSON.stringify({
+          p_nombre: nombre,
+          p_cct: cct,
+          p_eslogan: valor('eslogan') || null,
+          p_correo: valor('correo') || null,
+          p_municipio: valor('municipio') || null,
+          p_sector: valor('sector') || null,
+          p_zona_escolar: valor('zona_escolar') || null,
+          p_calle: valor('calle') || null,
+          p_colonia: valor('colonia') || null,
+          p_codigo_postal: valor('codigo_postal') || null,
+          p_estado: valor('estado') || null,
+          p_logo_url: valor('logo_url') || null
+        })
+      })
+      .then(function (resp) {
+        return resp.json().then(function (data) {
+          if (!resp.ok) throw new Error((data && data.message) || 'No se pudo guardar.');
+          return data;
+        });
+      })
+      .then(function () {
+        mostrar('exito', '<strong>Escuela guardada:</strong> ' + nombre + ' (' + cct + ').<br>' +
+          'Ya puedes <a href="captura-alumno.html">capturar alumnos de esta escuela</a>.');
+        form.reset();
+      })
+      .catch(function (err) {
+        mostrar('error', '<strong>No se pudo guardar.</strong> ' + (err.message || 'Intenta de nuevo más tarde.'));
+      })
+      .finally(function () {
+        boton.disabled = false;
+        boton.textContent = 'Guardar escuela';
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
