@@ -59,6 +59,13 @@
       </div>
 
       <div class="campo">
+        <label for="ciclo">Ciclo escolar <span class="req">*</span></label>
+        <select id="ciclo" name="ciclo" required>
+          <option value="">Cargando ciclos…</option>
+        </select>
+      </div>
+
+      <div class="campo">
         <label for="nombres">Nombre(s) <span class="req">*</span></label>
         <input id="nombres" name="nombres" type="text" required autocomplete="off" placeholder="Ej. María Fernanda">
       </div>
@@ -140,6 +147,8 @@
     var mensaje = document.getElementById('mensaje');
     var boton = document.getElementById('btn-guardar');
     var selectEscuela = document.getElementById('escuela');
+    var selectCiclo = document.getElementById('ciclo');
+    var cicloActualId = null;
 
     function mostrar(tipo, html) {
       mensaje.className = 'mensaje ' + tipo;
@@ -169,6 +178,30 @@
       });
     }
 
+    /* Cargar ciclos escolares en el desplegable (por defecto, el actual) */
+    rpc('listar_ciclos').then(function (ciclos) {
+      selectCiclo.innerHTML = '';
+      if (!ciclos || ciclos.length === 0) {
+        selectCiclo.innerHTML = '<option value="">No hay ciclos escolares</option>';
+        mostrar('error', 'No hay ciclos escolares capturados. Captura uno en Supabase (tabla ciclo_escolar) y marca el actual.');
+        return;
+      }
+      ciclos.forEach(function (c) {
+        var opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre + (c.actual ? ' (actual)' : '');
+        if (c.actual) { opt.selected = true; cicloActualId = String(c.id); }
+        selectCiclo.appendChild(opt);
+      });
+      if (cicloActualId === null) {
+        cicloActualId = String(ciclos[0].id);
+        selectCiclo.value = cicloActualId;
+      }
+    }).catch(function () {
+      selectCiclo.innerHTML = '<option value="">No se pudieron cargar los ciclos</option>';
+      mostrar('error', 'No se pudieron cargar los ciclos escolares. Revisa que el archivo SUPABASE_formularios_captura.sql ya se haya ejecutado en Supabase.');
+    });
+
     /* Cargar escuelas capturadas en el desplegable */
     rpc('listar_escuelas').then(function (escuelas) {
       selectEscuela.innerHTML = '<option value="">Elige una escuela…</option>';
@@ -192,11 +225,12 @@
       ev.preventDefault();
 
       var escuelaId = selectEscuela.value;
+      var cicloId = selectCiclo.value;
       var nombres = valor('nombres');
       var apellidoPaterno = valor('apellido_paterno');
       var grupo = valor('grupo');
-      if (!escuelaId || !nombres || !apellidoPaterno || !grupo) {
-        mostrar('error', 'Faltan datos: escuela, nombre, apellido paterno y grupo son obligatorios.');
+      if (!escuelaId || !cicloId || !nombres || !apellidoPaterno || !grupo) {
+        mostrar('error', 'Faltan datos: escuela, ciclo escolar, nombre, apellido paterno y grupo son obligatorios.');
         return;
       }
 
@@ -216,7 +250,8 @@
         p_turno: valor('turno') || null,
         p_tutor_nombres: valor('tutor_nombres') || null,
         p_tutor_correo: valor('tutor_correo') || null,
-        p_tutor_telefono: valor('tutor_telefono') || null
+        p_tutor_telefono: valor('tutor_telefono') || null,
+        p_ciclo_id: parseInt(cicloId, 10)
       })
       .then(function (data) {
         var row = Array.isArray(data) ? data[0] : data;
@@ -236,6 +271,7 @@
           }
         });
         form.reset();
+        if (cicloActualId !== null) selectCiclo.value = cicloActualId;
       })
       .catch(function (err) {
         mostrar('error', '<strong>No se pudo guardar.</strong> ' + (err.message || 'Intenta de nuevo más tarde.'));
