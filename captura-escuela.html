@@ -65,6 +65,21 @@
 
       <div class="fila">
         <div class="campo">
+          <label for="nivel">Nivel <span class="req">*</span></label>
+          <select id="nivel" name="nivel" required>
+            <option value="">Cargando niveles…</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="sostenimiento">Sostenimiento</label>
+          <select id="sostenimiento" name="sostenimiento">
+            <option value="">Sin especificar</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fila">
+        <div class="campo">
           <label for="zona_escolar">Zona escolar</label>
           <input id="zona_escolar" name="zona_escolar" type="text" autocomplete="off" placeholder="Ej. 12">
         </div>
@@ -131,6 +146,8 @@
     var form = document.getElementById('form-escuela');
     var mensaje = document.getElementById('mensaje');
     var boton = document.getElementById('btn-guardar');
+    var selectNivel = document.getElementById('nivel');
+    var selectSostenimiento = document.getElementById('sostenimiento');
 
     function mostrar(tipo, html) {
       mensaje.className = 'mensaje ' + tipo;
@@ -143,13 +160,60 @@
       return v ? v.trim() : '';
     }
 
+    function rpc(nombre, body) {
+      return fetch(SUPABASE_URL + '/rest/v1/rpc/' + nombre, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY
+        },
+        body: JSON.stringify(body || {})
+      }).then(function (resp) {
+        return resp.json().then(function (data) {
+          if (!resp.ok) throw new Error((data && data.message) || 'No se pudo conectar.');
+          return data;
+        });
+      });
+    }
+
+    /* Cargar niveles y sostenimientos en los desplegables */
+    rpc('listar_niveles').then(function (niveles) {
+      selectNivel.innerHTML = '<option value="">Elige un nivel…</option>';
+      if (!niveles || niveles.length === 0) {
+        selectNivel.innerHTML = '<option value="">No hay niveles</option>';
+        return;
+      }
+      niveles.forEach(function (n) {
+        var opt = document.createElement('option');
+        opt.value = n.id;
+        opt.textContent = n.nombre;
+        selectNivel.appendChild(opt);
+      });
+    }).catch(function () {
+      selectNivel.innerHTML = '<option value="">No se pudieron cargar los niveles</option>';
+      mostrar('error', 'No se pudieron cargar los niveles. Revisa que el archivo SUPABASE_formularios_captura.sql ya se haya ejecutado en Supabase.');
+    });
+
+    rpc('listar_sostenimientos').then(function (sostenimientos) {
+      if (!sostenimientos || sostenimientos.length === 0) return;
+      sostenimientos.forEach(function (s) {
+        var opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.nombre;
+        selectSostenimiento.appendChild(opt);
+      });
+    }).catch(function () { /* el sostenimiento es opcional */ });
+
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
 
       var nombre = valor('nombre');
       var cct = valor('cct');
-      if (!nombre || !cct) {
-        mostrar('error', 'Faltan datos: el nombre de la escuela y la CCT son obligatorios.');
+      var nivelId = selectNivel.value;
+      var sostenimientoId = selectSostenimiento.value;
+      if (!nombre || !cct || !nivelId) {
+        mostrar('error', 'Faltan datos: el nombre de la escuela, la CCT y el nivel son obligatorios.');
         return;
       }
 
@@ -158,27 +222,21 @@
       mensaje.className = 'mensaje';
       mensaje.innerHTML = '';
 
-      fetch(SUPABASE_URL + '/rest/v1/rpc/registrar_escuela', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_KEY
-        },
-        body: JSON.stringify({
-          p_nombre: nombre,
-          p_cct: cct,
-          p_eslogan: valor('eslogan') || null,
-          p_correo: valor('correo') || null,
-          p_municipio: valor('municipio') || null,
-          p_sector: valor('sector') || null,
-          p_zona_escolar: valor('zona_escolar') || null,
-          p_calle: valor('calle') || null,
-          p_colonia: valor('colonia') || null,
-          p_codigo_postal: valor('codigo_postal') || null,
-          p_estado: valor('estado') || null,
-          p_logo_url: valor('logo_url') || null
-        })
+      rpc('registrar_escuela', {
+        p_nombre: nombre,
+        p_cct: cct,
+        p_nivel_id: parseInt(nivelId, 10),
+        p_eslogan: valor('eslogan') || null,
+        p_correo: valor('correo') || null,
+        p_municipio: valor('municipio') || null,
+        p_sector: valor('sector') || null,
+        p_zona_escolar: valor('zona_escolar') || null,
+        p_calle: valor('calle') || null,
+        p_colonia: valor('colonia') || null,
+        p_codigo_postal: valor('codigo_postal') || null,
+        p_estado: valor('estado') || null,
+        p_logo_url: valor('logo_url') || null,
+        p_sostenimiento_id: sostenimientoId ? parseInt(sostenimientoId, 10) : null
       })
       .then(function (resp) {
         return resp.json().then(function (data) {

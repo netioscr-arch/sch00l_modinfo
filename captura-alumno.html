@@ -83,8 +83,8 @@
 
       <div class="fila">
         <div class="campo">
-          <label for="numero_alumno">Número de alumno</label>
-          <input id="numero_alumno" name="numero_alumno" type="text" autocomplete="off" placeholder="Ej. 12345">
+          <label for="numero_alumno">Número de alumno <span class="req">*</span></label>
+          <input id="numero_alumno" name="numero_alumno" type="text" required autocomplete="off" placeholder="Ej. 12345">
         </div>
         <div class="campo">
           <label for="grupo">Grupo <span class="req">*</span></label>
@@ -94,15 +94,15 @@
 
       <div class="fila">
         <div class="campo">
-          <label for="grado">Grado</label>
-          <input id="grado" name="grado" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej. 3">
+          <label for="grado">Grado <span class="req">*</span></label>
+          <select id="grado" name="grado" required>
+            <option value="">Cargando grados…</option>
+          </select>
         </div>
         <div class="campo">
           <label for="turno">Turno</label>
           <select id="turno" name="turno">
             <option value="">Sin especificar</option>
-            <option value="Matutino">Matutino</option>
-            <option value="Vespertino">Vespertino</option>
           </select>
         </div>
       </div>
@@ -148,6 +148,8 @@
     var boton = document.getElementById('btn-guardar');
     var selectEscuela = document.getElementById('escuela');
     var selectCiclo = document.getElementById('ciclo');
+    var selectGrado = document.getElementById('grado');
+    var selectTurno = document.getElementById('turno');
     var cicloActualId = null;
 
     function mostrar(tipo, html) {
@@ -177,6 +179,35 @@
         });
       });
     }
+
+    /* Cargar grados y turnos en los desplegables */
+    rpc('listar_grados').then(function (grados) {
+      selectGrado.innerHTML = '<option value="">Elige un grado…</option>';
+      if (!grados || grados.length === 0) {
+        selectGrado.innerHTML = '<option value="">No hay grados</option>';
+        return;
+      }
+      grados.forEach(function (g) {
+        var opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = g.nombre;
+        selectGrado.appendChild(opt);
+      });
+    }).catch(function () {
+      selectGrado.innerHTML = '<option value="">No se pudieron cargar los grados</option>';
+    });
+
+    rpc('listar_turnos').then(function (turnos) {
+      if (!turnos || turnos.length === 0) return;
+      turnos.forEach(function (t) {
+        var opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.nombre;
+        selectTurno.appendChild(opt);
+      });
+    }).catch(function () {
+      mostrar('error', 'No se pudieron cargar los turnos. Revisa que el archivo SUPABASE_formularios_captura.sql ya se haya ejecutado en Supabase.');
+    });
 
     /* Cargar ciclos escolares en el desplegable (por defecto, el actual) */
     rpc('listar_ciclos').then(function (ciclos) {
@@ -228,9 +259,12 @@
       var cicloId = selectCiclo.value;
       var nombres = valor('nombres');
       var apellidoPaterno = valor('apellido_paterno');
+      var numeroAlumno = valor('numero_alumno');
       var grupo = valor('grupo');
-      if (!escuelaId || !cicloId || !nombres || !apellidoPaterno || !grupo) {
-        mostrar('error', 'Faltan datos: escuela, ciclo escolar, nombre, apellido paterno y grupo son obligatorios.');
+      var gradoId = selectGrado.value;
+      var turnoId = selectTurno.value;
+      if (!escuelaId || !cicloId || !nombres || !apellidoPaterno || !numeroAlumno || !grupo || !gradoId) {
+        mostrar('error', 'Faltan datos: escuela, ciclo escolar, nombre, apellido paterno, número de alumno, grupo y grado son obligatorios.');
         return;
       }
 
@@ -244,10 +278,10 @@
         p_nombres: nombres,
         p_apellido_paterno: apellidoPaterno,
         p_apellido_materno: valor('apellido_materno') || null,
-        p_numero_alumno: valor('numero_alumno') || null,
+        p_numero_alumno: numeroAlumno,
         p_grupo: grupo,
-        p_grado: valor('grado') || null,
-        p_turno: valor('turno') || null,
+        p_grado_id: parseInt(gradoId, 10),
+        p_turno_id: turnoId ? parseInt(turnoId, 10) : null,
         p_tutor_nombres: valor('tutor_nombres') || null,
         p_tutor_correo: valor('tutor_correo') || null,
         p_tutor_telefono: valor('tutor_telefono') || null,
