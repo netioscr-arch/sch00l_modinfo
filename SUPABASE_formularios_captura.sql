@@ -169,6 +169,7 @@ declare
   v_ciclo_id smallint;
   v_grado_nombre text;
   v_turno_nombre text;
+  v_tutor_id uuid;
 begin
   if p_escuela_id is null then
     raise exception 'Falta la escuela';
@@ -259,7 +260,13 @@ begin
     values
       (v_alumno_id, btrim(p_tutor_nombres),
        nullif(btrim(coalesce(p_tutor_correo, '')), ''),
-       nullif(btrim(coalesce(p_tutor_telefono, '')), ''));
+       nullif(btrim(coalesce(p_tutor_telefono, '')), ''))
+    returning id into v_tutor_id;
+
+    -- La presentación (buscar_alumno) lee el tutor por la tabla puente
+    -- alumno_tutor, no por tutor.alumno_id.
+    insert into public.alumno_tutor (alumno_id, tutor_id)
+    values (v_alumno_id, v_tutor_id);
   end if;
 
   return query select v_alumno_id, v_token;
@@ -333,7 +340,52 @@ $$;
 grant execute on function public.listar_sostenimientos() to anon, authenticated;
 
 -- --------------------------------------------------------------------------
--- 5. Comprobación rápida (después de Run, estas consultas deben contestar)
+-- 5. buscar_alumno (presentación): mismo cuerpo que tenía, salvo el turno
+--    que pasa de JOIN a LEFT JOIN para que un alumno guardado sin turno
+--    también tenga página de presentación. El tutor se lee por la tabla
+--    puente alumno_tutor (registrar_alumno ya crea ese enlace).
+-- --------------------------------------------------------------------------
+create or replace function public.buscar_alumno(p_token text)
+ returns table(escuela text, logo text, eslogan text, numero_alumno text, nombre_completo text, grado text, grupo text, turno text, tutor text, telefono text, correo text)
+ language sql
+ stable security definer
+ set search_path to 'public'
+ as $function$
+ select
+   e.nombre::text                                                    as escuela,
+   e.logo_url::text                                                  as logo,
+   e.eslogan::text                                                   as eslogan,
+   a.numero_alumno::text                                             as numero_alumno,
+   concat_ws(' ', a.nombres, a.apellido_paterno, a.apellido_materno)::text as nombre_completo,
+   g.nombre::text                                                    as grado,
+   i.grupo::text                                                     as grupo,
+   t.nombre::text                                                    as turno,
+   tu.nombre::text                                                   as tutor,
+   tu.telefono::text                                                 as telefono,
+   tu.correo::text                                                   as correo
+ from public.alumno a
+ join public.escuela e      on e.id = a.escuela_id
+ join public.inscripcion i  on i.alumno_id = a.id
+ join public.ciclo_escolar c on c.id = i.ciclo_id and c.actual
+ join public.cat_grado g    on g.id = i.grado_id
+ left join public.cat_turno t on t.id = i.turno_id
+ left join lateral (
+   select
+     concat_ws(' ', tt.nombres, tt.apellidos) as nombre,
+     tt.telefono,
+     tt.correo
+   from public.alumno_tutor atu
+   join public.tutor tt on tt.id = atu.tutor_id
+   where atu.alumno_id = a.id
+   order by atu.created_at
+   limit 1
+ ) tu on true
+ where a.token_publico = p_token
+ limit 1;
+ $function$;
+
+-- --------------------------------------------------------------------------
+-- 6. Comprobación rápida (después de Run, estas consultas deben contestar)
 -- --------------------------------------------------------------------------
 -- select * from public.listar_escuelas();
 -- select * from public.listar_ciclos();
