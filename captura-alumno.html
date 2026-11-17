@@ -234,7 +234,7 @@
       ciclos.forEach(function (c) {
         var opt = document.createElement('option');
         opt.value = c.id;
-        opt.textContent = c.nombre + (c.actual ? ' (actual)' : '');
+        opt.textContent = c.nombre;
         if (c.actual) { opt.selected = true; cicloActualId = String(c.id); }
         selectCiclo.appendChild(opt);
       });

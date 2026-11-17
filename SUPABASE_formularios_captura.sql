@@ -31,14 +31,18 @@ alter table public.tutor
 
 -- --------------------------------------------------------------------------
 -- 2. Listar escuelas (para el desplegable del formulario de alumno)
+--    Incluye nivel_id: el desplegable de grados se filtra por el nivel
+--    de la escuela elegida (cat_grado.nivel_id).
 -- --------------------------------------------------------------------------
+drop function if exists public.listar_escuelas();
+
 create or replace function public.listar_escuelas()
-returns table(id uuid, nombre text, cct text)
+returns table(id uuid, nombre text, cct text, nivel_id smallint)
 language sql
 security definer
 stable
 as $$
-  select id, nombre, cct
+  select id, nombre, cct, nivel_id
   from public.escuela
   order by nombre;
 $$;
@@ -49,10 +53,14 @@ grant execute on function public.listar_escuelas() to anon, authenticated;
 -- 3. Registrar escuela
 --    Devuelve el id de la escuela creada.
 --    La CCT no se puede repetir: si ya existe, marca error.
+--    El nivel es obligatorio (escuela.nivel_id, catálogo
+--    cat_nivel_educativo) y se elige en un desplegable del formulario;
+--    el sostenimiento es opcional (catálogo cat_sostenimiento).
 -- --------------------------------------------------------------------------
 create or replace function public.registrar_escuela(
   p_nombre text,
   p_cct text,
+  p_nivel_id smallint,
   p_eslogan text default null,
   p_correo text default null,
   p_municipio text default null,
@@ -62,7 +70,8 @@ create or replace function public.registrar_escuela(
   p_colonia text default null,
   p_codigo_postal text default null,
   p_estado text default null,
-  p_logo_url text default null
+  p_logo_url text default null,
+  p_sostenimiento_id smallint default null
 )
 returns uuid
 language plpgsql
@@ -77,15 +86,25 @@ begin
   if p_cct is null or btrim(p_cct) = '' then
     raise exception 'La CCT es obligatoria';
   end if;
+  if p_nivel_id is null then
+    raise exception 'El nivel es obligatorio';
+  end if;
+  if not exists (select 1 from public.cat_nivel_educativo where id = p_nivel_id) then
+    raise exception 'El nivel elegido no existe';
+  end if;
+  if p_sostenimiento_id is not null
+    and not exists (select 1 from public.cat_sostenimiento where id = p_sostenimiento_id) then
+    raise exception 'El sostenimiento elegido no existe';
+  end if;
   if exists (select 1 from public.escuela where cct = btrim(p_cct)) then
     raise exception 'Ya existe una escuela con la CCT %', btrim(p_cct);
   end if;
 
   insert into public.escuela
-    (nombre, cct, eslogan, correo, municipio, sector, zona_escolar,
-     calle, colonia, codigo_postal, estado, logo_url)
+    (nombre, cct, nivel_id, sostenimiento_id, eslogan, correo, municipio,
+     sector, zona_escolar, calle, colonia, codigo_postal, estado, logo_url)
   values
-    (btrim(p_nombre), btrim(p_cct),
+    (btrim(p_nombre), btrim(p_cct), p_nivel_id, p_sostenimiento_id,
      nullif(btrim(coalesce(p_eslogan, '')), ''),
      nullif(btrim(coalesce(p_correo, '')), ''),
      nullif(btrim(coalesce(p_municipio, '')), ''),
@@ -103,7 +122,7 @@ end;
 $$;
 
 grant execute on function public.registrar_escuela(
-  text, text, text, text, text, text, text, text, text, text, text, text
+  text, text, smallint, text, text, text, text, text, text, text, text, text, text, smallint
 ) to anon, authenticated;
 
 -- --------------------------------------------------------------------------
@@ -113,6 +132,19 @@ grant execute on function public.registrar_escuela(
 --    El enlace de presentación se arma así:
 --      https://sch00l-modinfo.vercel.app/?t=<token_publico>
 -- --------------------------------------------------------------------------
+-- Se elimina la versión anterior de 11 parámetros (sin ciclo) para que
+-- solo quede una versión del formulario: la de 12 parámetros con
+-- p_ciclo_id. La versión vieja de 14 parámetros no se toca.
+drop function if exists public.registrar_alumno(
+  uuid, text, text, text, text, text, text, text, text, text, text
+);
+
+-- Se elimina la versión de 12 parámetros con p_grado/p_turno en texto,
+-- porque el grado y el turno ahora son catálogos (p_grado_id/p_turno_id).
+drop function if exists public.registrar_alumno(
+  uuid, text, text, text, text, text, text, text, text, text, text, smallint
+);
+
 create or replace function public.registrar_alumno(
   p_escuela_id uuid,
   p_nombres text,
@@ -120,11 +152,12 @@ create or replace function public.registrar_alumno(
   p_apellido_materno text default null,
   p_numero_alumno text default null,
   p_grupo text default null,
-  p_grado text default null,
-  p_turno text default null,
+  p_grado_id smallint default null,
+  p_turno_id smallint default null,
   p_tutor_nombres text default null,
   p_tutor_correo text default null,
-  p_tutor_telefono text default null
+  p_tutor_telefono text default null,
+  p_ciclo_id smallint default null
 )
 returns table(alumno_id uuid, token_publico text)
 language plpgsql
@@ -133,6 +166,9 @@ as $$
 declare
   v_alumno_id uuid;
   v_token text;
+  v_ciclo_id smallint;
+  v_grado_nombre text;
+  v_turno_nombre text;
 begin
   if p_escuela_id is null then
     raise exception 'Falta la escuela';
@@ -146,14 +182,54 @@ begin
   if p_apellido_paterno is null or btrim(p_apellido_paterno) = '' then
     raise exception 'El apellido paterno es obligatorio';
   end if;
+  if p_numero_alumno is null or btrim(p_numero_alumno) = '' then
+    raise exception 'El número de alumno es obligatorio';
+  end if;
+  if exists (select 1 from public.alumno
+             where escuela_id = p_escuela_id
+               and numero_alumno = btrim(p_numero_alumno)) then
+    raise exception 'Ya existe un alumno con el número % en esta escuela', btrim(p_numero_alumno);
+  end if;
   if p_grupo is null or btrim(p_grupo) = '' then
     raise exception 'El grupo es obligatorio';
+  end if;
+  if p_grado_id is null then
+    raise exception 'El grado es obligatorio';
+  end if;
+  select nombre into v_grado_nombre from public.cat_grado where id = p_grado_id;
+  if v_grado_nombre is null then
+    raise exception 'El grado elegido no existe';
+  end if;
+  if p_turno_id is not null then
+    select nombre into v_turno_nombre from public.cat_turno where id = p_turno_id;
+    if v_turno_nombre is null then
+      raise exception 'El turno elegido no existe';
+    end if;
+  end if;
+
+  -- Ciclo escolar actual (inscripcion.ciclo_id es obligatorio y referencia
+  -- a ciclo_escolar.id). Si el formulario no manda p_ciclo_id, se toma
+  -- el ciclo marcado actual = true; si lo manda, se verifica que exista.
+  if p_ciclo_id is null then
+    select id into v_ciclo_id
+    from public.ciclo_escolar
+    where actual is true
+    order by id desc
+    limit 1;
+    if v_ciclo_id is null then
+      raise exception 'No hay un ciclo escolar activo. Marca un ciclo como actual en la tabla ciclo_escolar';
+    end if;
+  else
+    if not exists (select 1 from public.ciclo_escolar where id = p_ciclo_id) then
+      raise exception 'El ciclo escolar elegido no existe';
+    end if;
+    v_ciclo_id := p_ciclo_id;
   end if;
 
   -- Token público único (32 caracteres hexadecimales)
   loop
     v_token := encode(gen_random_bytes(16), 'hex');
-    exit when not exists (select 1 from public.alumno where token_publico = v_token);
+    exit when not exists (select 1 from public.alumno where alumno.token_publico = v_token);
   end loop;
 
   insert into public.alumno
@@ -167,12 +243,15 @@ begin
   returning id into v_alumno_id;
 
   insert into public.inscripcion
-    (alumno_id, escuela_id, grupo, grado, turno)
+    (alumno_id, escuela_id, grupo, grado, turno, ciclo_id, grado_id, turno_id)
   values
     (v_alumno_id, p_escuela_id,
      btrim(p_grupo),
-     nullif(btrim(coalesce(p_grado, '')), ''),
-     nullif(btrim(coalesce(p_turno, '')), ''));
+     v_grado_nombre,
+     v_turno_nombre,
+     v_ciclo_id,
+     p_grado_id,
+     p_turno_id);
 
   if p_tutor_nombres is not null and btrim(p_tutor_nombres) <> '' then
     insert into public.tutor
@@ -188,13 +267,79 @@ end;
 $$;
 
 grant execute on function public.registrar_alumno(
-  uuid, text, text, text, text, text, text, text, text, text, text
+  uuid, text, text, text, text, text, smallint, smallint, text, text, text, smallint
 ) to anon, authenticated;
+
+-- Catálogos para los desplegables de los formularios.
+create or replace function public.listar_ciclos()
+returns table(id smallint, nombre text, actual boolean)
+language sql
+security definer
+as $$
+  select id, nombre, actual
+  from public.ciclo_escolar
+  order by id desc;
+$$;
+
+grant execute on function public.listar_ciclos() to anon, authenticated;
+
+-- Grados filtrados por nivel: cat_grado tiene nivel_id (2 Preescolar =
+-- 1°-3°, 3 Primaria = 1°-6°, 4 Secundaria = 1°-3°), así el desplegable
+-- solo muestra los grados de la escuela elegida. Sin p_nivel_id
+-- devuelve todos.
+drop function if exists public.listar_grados();
+
+create or replace function public.listar_grados(p_nivel_id smallint default null)
+returns table(id smallint, nombre text, nivel_id smallint, numero smallint)
+language sql
+security definer
+as $$
+  select id, nombre, nivel_id, numero
+  from public.cat_grado
+  where p_nivel_id is null or nivel_id = p_nivel_id
+  order by nivel_id, numero;
+$$;
+
+grant execute on function public.listar_grados(smallint) to anon, authenticated;
+
+create or replace function public.listar_turnos()
+returns table(id smallint, nombre text)
+language sql
+security definer
+as $$
+  select id, nombre from public.cat_turno order by id;
+$$;
+
+grant execute on function public.listar_turnos() to anon, authenticated;
+
+create or replace function public.listar_niveles()
+returns table(id smallint, nombre text)
+language sql
+security definer
+as $$
+  select id, nombre from public.cat_nivel_educativo order by id;
+$$;
+
+grant execute on function public.listar_niveles() to anon, authenticated;
+
+create or replace function public.listar_sostenimientos()
+returns table(id smallint, nombre text)
+language sql
+security definer
+as $$
+  select id, nombre from public.cat_sostenimiento order by id;
+$$;
+
+grant execute on function public.listar_sostenimientos() to anon, authenticated;
 
 -- --------------------------------------------------------------------------
 -- 5. Comprobación rápida (después de Run, estas consultas deben contestar)
 -- --------------------------------------------------------------------------
 -- select * from public.listar_escuelas();
+-- select * from public.listar_ciclos();
+-- select * from public.listar_grados();
+-- select * from public.listar_turnos();
+-- select * from public.listar_niveles();
 -- select column_name from information_schema.columns
 --  where table_schema = 'public' and table_name = 'inscripcion'
 --  order by ordinal_position;
