@@ -68,7 +68,7 @@ var Sch00lForms = (function () {
       selectEscuela.innerHTML = '<option value="">Elige una escuela…</option>';
       if (!escuelas || escuelas.length === 0) {
         selectEscuela.innerHTML = '<option value="">No hay escuelas capturadas</option>';
-        mostrar('error', 'Todavía no hay escuelas capturadas. Primero <a href="captura-escuela.html">captura una escuela</a>.');
+        mostrar('error', 'Todavía no hay escuelas capturadas. Primero <a href="captura-escuela">captura una escuela</a>.');
         return [];
       }
       escuelas.forEach(function (e) {

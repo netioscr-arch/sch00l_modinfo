@@ -46,7 +46,7 @@
     })
     .then(function () {
       F.mostrar('exito', '<strong>Escuela guardada:</strong> ' + nombre + ' (' + cct + ').<br>' +
-        'Ya puedes <a href="captura-alumno.html">capturar alumnos de esta escuela</a>.');
+        'Ya puedes <a href="captura-alumno">capturar alumnos de esta escuela</a>.');
       form.reset();
     })
     .catch(function (err) {

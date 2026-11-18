@@ -75,7 +75,7 @@
     })
     .then(function () {
       F.mostrar('exito', '<strong>Escuela actualizada:</strong> ' + nombre + ' (' + cct + ').<br>' +
-        'Ya puedes <a href="modificar-alumno.html">modificar alumnos de esta escuela</a>.');
+        'Ya puedes <a href="modificar-alumno">modificar alumnos de esta escuela</a>.');
     })
     .catch(function (err) {
       F.mostrar('error', '<strong>No se pudo guardar.</strong> ' + (err.message || 'Intenta de nuevo más tarde.'));
