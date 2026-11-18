@@ -210,7 +210,7 @@
       'school-logo': logoUrl,
       'footer-school': row.escuela || '',
       'footer-text': ' · ' + (slogan || 'Formando el futuro con excelencia académica y valores'),
-      'person-name': nombre,
+      'person-name': nombre.toUpperCase(),
       'person-detail': detalle,
       'person-initials': iniciales(nombre),
       'person-role': 'Estudiante',
