@@ -238,12 +238,6 @@
         p_logo_url: valor('logo_url') || null,
         p_sostenimiento_id: sostenimientoId ? parseInt(sostenimientoId, 10) : null
       })
-      .then(function (resp) {
-        return resp.json().then(function (data) {
-          if (!resp.ok) throw new Error((data && data.message) || 'No se pudo guardar.');
-          return data;
-        });
-      })
       .then(function () {
         mostrar('exito', '<strong>Escuela guardada:</strong> ' + nombre + ' (' + cct + ').<br>' +
           'Ya puedes <a href="captura-alumno.html">capturar alumnos de esta escuela</a>.');
